@@ -12,6 +12,7 @@ public class HealingFountain : Collidable
     protected override void OnCollide(Collider2D collider)
     {
         if (collider.name != "Player")
+            return;
 
         if (Time.time - lastHeal > healCooldown)
         {

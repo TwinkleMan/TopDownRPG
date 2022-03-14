@@ -16,12 +16,14 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             Destroy(player.gameObject);
             Destroy(floatingTextManager.gameObject);
+            Destroy(hud);
+            Destroy(menu);
             return;
         }
 
         instance = this;
         SceneManager.sceneLoaded += LoadState;
-        DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += OnSceneLoad;
     }
 
     //Resources
@@ -35,6 +37,10 @@ public class GameManager : MonoBehaviour
     public Weapon weapon;
     public GameObject crosshair;
     public FloatingTextManager floatingTextManager;
+    public RectTransform hitpointBar;
+    public GameObject hud;
+    public GameObject menu;
+
 
     //Logic
     public int coins;
@@ -60,6 +66,13 @@ public class GameManager : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    //Hitpoint bar
+    public void onHitpointChange()
+    {
+        float ratio = (float)player.hitpoint / (float)player.maxHitpoint;
+        hitpointBar.localScale = new Vector3(1, ratio, 1);
     }
 
     //experience
@@ -103,6 +116,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Level up!");
         player.OnLevelUp();
+        onHitpointChange();
     }
 
     //save state
@@ -123,11 +137,12 @@ public class GameManager : MonoBehaviour
         save += weapon.weaponLevel.ToString();
 
         PlayerPrefs.SetString("SaveState", save);
-        Debug.Log("SaveState");
     }
 
     public void LoadState(Scene s, LoadSceneMode mode)
     {
+        SceneManager.sceneLoaded -= LoadState;
+
         if (!PlayerPrefs.HasKey("SaveState")) return;
 
         string[] data = PlayerPrefs.GetString("SaveState").Split('|');
@@ -144,8 +159,12 @@ public class GameManager : MonoBehaviour
         weapon.SetWeaponLevel(int.Parse(data[3]));
 
         player.transform.position = GameObject.Find("SpawnPoint").transform.position;
+    }
 
-        Debug.Log("LoadState");
+    //On scene load
+    public void OnSceneLoad(Scene s, LoadSceneMode mode)
+    {
+        player.transform.position = GameObject.Find("SpawnPoint").transform.position;
     }
 
     public void Pause()
